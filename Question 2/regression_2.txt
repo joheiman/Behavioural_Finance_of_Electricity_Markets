@@ -1,0 +1,28 @@
+QUESTION 2: WITHIN-HOUR PRICE ALLOCATION AFTER THE REFORM
+=========================================================
+
+Specification:
+  price_qh - mean(price_h) = beta * [residual_load_qh - mean(residual_load_h)] + error_qh
+
+Data construction:
+  Reform period:              2025-10-01 through 2026-09-30
+  Post-reform delivery hours: 8,760 
+  Quarter-hour observations:  35,040 
+  Quarter-hours per hour:     4
+  Intercept:                  omitted (within-hour deviations sum to zero)
+  Standard errors:            clustered by delivery hour
+  Number of clusters:         8,760 
+
+Regression results:
+OLS estimation, Dep. Var.: price_deviation
+Observations: 35,040
+Standard-errors: Clustered (hour_cluster) 
+                        Estimate Std. Error t value  Pr(>|t|)    
+residual_load_deviation  8.89857    0.10711 83.0789 < 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 9.92149   Adj. R2: 0.520757
+
+Key result:
+  beta = 8.898566 (clustered SE = 0.107110, t = 83.079, p < 2.2e-16)
+  R-squared = 0.520757

@@ -74,3 +74,75 @@ message(
 )
 
 glimpse(model_1_hourly)
+
+# Add calendar variables used by the fixed-effects specifications.
+model_1_hourly <- model_1_hourly |>
+  mutate(
+    month = factor(format(delivery_date, "%m")),
+    day_of_week_number = as.integer(format(delivery_date, "%u")),
+    day_of_week = factor(
+      day_of_week_number,
+      levels = 1:7,
+      labels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    ),
+    hour_of_day = factor(delivery_hour)
+  )
+
+# Specification A - No fixed effects
+model_a <- lm(
+  price_de_eur_mwh ~ residual_load_gw + residual_load_post,
+  data = model_1_hourly
+)
+
+# Specification B - Date fixed effects
+model_b <- lm(
+  price_de_eur_mwh ~ residual_load_gw + residual_load_post +
+    factor(delivery_date),
+  data = model_1_hourly
+)
+
+# Specification C - Date and hour-of-day fixed effects
+model_c <- lm(
+  price_de_eur_mwh ~ residual_load_gw + residual_load_post +
+    factor(delivery_date) + hour_of_day,
+  data = model_1_hourly
+)
+
+# Specification D - Month, weekday (Monday-Sunday), and hour-of-day fixed effects
+model_d <- lm(
+  price_de_eur_mwh ~ residual_load_gw + residual_load_post +
+    month + day_of_week + hour_of_day,
+  data = filter(model_1_hourly, day_of_week_number %in% 1:7)
+)
+
+# Write all model summaries and post-reform slopes to a text file.
+models <- list(A = model_a, B = model_b, C = model_c, D = model_d)
+model_output_path <- "question_1_model_output.txt"
+
+capture.output(
+  {
+    cat("Question 1 regression results\n")
+    cat("Generated:", format(Sys.time()), "\n")
+    cat("Total hourly observations:", nrow(model_1_hourly), "\n\n")
+
+    for (specification in names(models)) {
+      fitted_model <- models[[specification]]
+      coefficients <- coef(fitted_model)
+      beta_post <- unname(
+        coefficients["residual_load_gw"] + coefficients["residual_load_post"]
+      )
+
+      cat(paste0(strrep("=", 72), "\n"))
+      cat("Specification", specification, "\n")
+      cat(paste0(strrep("=", 72), "\n\n"))
+      print(summary(fitted_model))
+      cat("\nPost-reform slope (beta_1 + beta_2):", beta_post, "\n\n")
+    }
+  },
+  file = model_output_path
+)
+
+message(
+  "Saved all regression output to: ",
+  normalizePath(model_output_path, winslash = "/", mustWork = TRUE)
+)
