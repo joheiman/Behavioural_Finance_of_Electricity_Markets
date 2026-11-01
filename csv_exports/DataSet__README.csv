@@ -1,0 +1,35 @@
+﻿"Electricity day-ahead dataset, Germany/Luxembourg, 1 Oct 2024 - 30 Sep 2026",
+,
+Sources,"SMARD (Bundesnetzagentur): day-ahead prices, DA forecast consumption, DA forecast generation"
+Units,Volumes converted from MWh per quarter-hour to average GW (x4 / 1000). Prices in EUR/MWh.
+Time,"SMARD timestamps are German local time. start_utc is unique; use it for ordering. Hourly groups are built on UTC hours, so the repeated autumn hour stays separate."
+Reform,"post = 1 from delivery date 1 Oct 2025. Before that, the 4 quarter-hour prices in an hour are identical (hourly auction)."
+,
+"Sheet ""Hourly""","17,520 hours. Use for Question 1: price_de on rl_fc_gw and rl_post with date and hour fixed effects."
+"Sheet ""QuarterHour""","70,080 quarter-hours. Use for Question 2 (keep post==1): price_dev on rl_dev."
+,
+Check: Q1 (this data),"beta1 = 3.71, beta2 = +0.01 (p = 0.94), SE clustered by date. Paper: 3.76 and -0.094 (p = 0.53)."
+Check: Q2 (this data),"beta = 8.90, R2 = 0.521, n = 35,040. Matches paper. SE = 0.046 (OLS) / 0.16 (clustered by date); paper 0.16."
+,
+Variable,Description
+start_utc,"Start of interval, UTC (unique, use for sorting/time-series)"
+start_local,"Start of interval, German local time (CET/CEST)"
+end_local,"End of interval, local time"
+date,Delivery date (local) -> date fixed effects (alpha_d)
+hour,Hour of day 0-23 (local) -> hour fixed effects (lambda_h)
+quarter,"Quarter-hour within the hour, 1-4"
+dst_repeat,1 = the repeated 02:00-03:00 hour on the autumn clock-change day
+post,1 = delivery date on/after 1 Oct 2025 (15-minute day-ahead pricing)
+price_de,"Day-ahead price DE-LU, EUR/MWh"
+price_neigh,"Average day-ahead price of DE-LU neighbours, EUR/MWh"
+load_fc_gw,"Day-ahead forecast grid load, GW (average over the interval)"
+wind_on_fc_gw,"Day-ahead forecast wind onshore, GW"
+wind_off_fc_gw,"Day-ahead forecast wind offshore, GW"
+solar_fc_gw,"Day-ahead forecast solar PV, GW"
+res_fc_gw,"Forecast wind + solar, GW"
+rl_fc_gw,"Forecast residual load = load - wind - solar, GW"
+rl_post,"rl_fc_gw x post (interaction, beta_2 in Q1)"
+price_hmean,Average DE-LU price over the 4 quarter-hours of the same hour
+rl_hmean,"Average forecast residual load over the same hour, GW"
+price_dev,price_de - price_hmean (Q2 dependent variable; 0 before reform)
+rl_dev,rl_fc_gw - rl_hmean (Q2 regressor)
